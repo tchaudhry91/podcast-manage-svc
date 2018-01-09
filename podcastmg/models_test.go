@@ -41,3 +41,44 @@ func TestUserEmail(t *testing.T) {
 		}
 	}
 }
+
+func TestUserSubscriptions(t *testing.T) {
+	type userSubscriptionTestCase struct {
+		name   string
+		user   User
+		append []Podcast
+		want   []Podcast
+	}
+
+	testCases := []userSubscriptionTestCase{
+		{"Empty Append", sampleUsers[1], nil, []Podcast{samplePodcasts[1], samplePodcasts[2]}},
+		{"Empty User", sampleUsers[3], nil, nil},
+		{"Single Append on Empty User", sampleUsers[2], []Podcast{samplePodcasts[1]}, []Podcast{samplePodcasts[1]}},
+		{"Single Append on Empty Subs", sampleUsers[0], []Podcast{samplePodcasts[1]}, []Podcast{samplePodcasts[1]}},
+		{"Multi Append on Empty Subs", sampleUsers[0], []Podcast{samplePodcasts[2], samplePodcasts[0]}, []Podcast{samplePodcasts[2], samplePodcasts[0]}},
+	}
+
+	for _, testCase := range testCases {
+		for _, append := range testCase.append {
+			testCase.user.AddSubscription(append)
+		}
+		if have := testCase.user.GetSubscriptions(); !compareSubscriptions(have, testCase.want) {
+			t.Errorf("TestCase:%v\tWant:%v\tHave:%v", testCase.name, testCase.want, have)
+		}
+	}
+}
+
+func compareSubscriptions(sl1 []Podcast, sl2 []Podcast) bool {
+	if sl1 == nil && sl2 == nil {
+		return true
+	}
+	if len(sl1) != len(sl2) {
+		return false
+	}
+	for i, v := range sl1 {
+		if v.URL != sl2[i].URL {
+			return false
+		}
+	}
+	return true
+}
