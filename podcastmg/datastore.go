@@ -1,6 +1,7 @@
 package podcastmg
 
 import (
+	"errors"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -10,7 +11,16 @@ func (dbStore *DBStore) Connect() error {
 	if err != nil {
 		return err
 	}
+	db.LogMode(false)
 	dbStore.Database = db
+	return nil
+}
+
+func (dbStore *DBStore) Close() error {
+	if dbStore.Database == nil {
+		return errors.New("Database object is nil")
+	}
+	dbStore.Database.Close()
 	return nil
 }
 
@@ -21,11 +31,8 @@ func (dbStore *DBStore) Migrate() error {
 	return nil
 }
 
-func (dbStore *DBStore) DropExistingTables() error {
-	if err := dbStore.Database.DropTableIfExists(&Podcast{}, &User{}, &PodcastItem{}).Error; err != nil {
-		return err
-	}
-	return nil
+func (dbStore *DBStore) DropExistingTables() {
+	dbStore.Database.DropTableIfExists(&Podcast{}, &User{}, &PodcastItem{}, "subscriptions")
 }
 
 func (dbStore *DBStore) CreateUser(user *User) error {

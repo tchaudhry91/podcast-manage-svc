@@ -6,12 +6,19 @@ import (
 
 var sampleUsers []User
 var samplePodcasts []Podcast
+var sampleItems []PodcastItem
 
 func init() {
 	samplePodcasts = []Podcast{
 		{Title: "Beyond!", URL: "ign.beyond.com/xml", PodcastItems: []PodcastItem{}},
 		{Title: "Game Scoop!", URL: "gamescoop.ign.com/xml", PodcastItems: []PodcastItem{{Title: "Episode1"}, {Title: "Episode2"}}},
 		{Title: "Unlocked!", URL: "unlocked.ign.com/xml", PodcastItems: []PodcastItem{{Title: "Episode1"}}},
+	}
+
+	sampleItems = []PodcastItem{
+		{Title: "Episode1", PodcastId: 1},
+		{Title: "Episode2", PodcastId: 2},
+		{Title: "Episode1"},
 	}
 
 	sampleUsers = []User{
@@ -68,6 +75,42 @@ func TestUserSubscriptions(t *testing.T) {
 	}
 }
 
+func TestPodcastItems(t *testing.T) {
+	type podcastItemTestCase struct {
+		item PodcastItem
+		want uint
+	}
+
+	testCases := []podcastItemTestCase{
+		{sampleItems[0], 1},
+		{sampleItems[1], 2},
+		{sampleItems[2], 0},
+	}
+
+	for _, testCase := range testCases {
+		if have := testCase.item.GetParentId(); have != testCase.want {
+			t.Errorf("Get Podcast Parent ID\thave:%v\twant:%v", have, testCase.want)
+		}
+	}
+}
+
+func TestPodcast(t *testing.T) {
+	type podcastGetItemsTestCase struct {
+		name    string
+		podcast Podcast
+		want    []PodcastItem
+	}
+	testCases := []podcastGetItemsTestCase{
+		{"No Episodes", samplePodcasts[0], []PodcastItem{}},
+		{"2 Episodes", samplePodcasts[1], []PodcastItem{{Title: "Episode1"}, {Title: "Episode2"}}},
+	}
+
+	for _, testCase := range testCases {
+		if have := testCase.podcast.GetItems(); len(have) != len(testCase.want) {
+			t.Errorf("%s\tHave:%v\tWant:%v", testCase.name, have, testCase.want)
+		}
+	}
+}
 func compareSubscriptions(sl1 []Podcast, sl2 []Podcast) bool {
 	if sl1 == nil && sl2 == nil {
 		return true
