@@ -69,7 +69,7 @@ func (dbStore *DBStore) CreatePodcast(podcast *Podcast) error {
 
 func (dbStore *DBStore) GetPodcast(podcastId uint) (Podcast, error) {
 	var podcast Podcast
-	if err := dbStore.Database.Where("podcast_id = ?", podcastId).Find(&podcast).Error; err != nil {
+	if err := dbStore.Database.Where("id = ?", podcastId).Find(&podcast).Error; err != nil {
 		return podcast, err
 	}
 	if err := dbStore.Database.Model(&podcast).Related(&podcast.PodcastItems, "PodcastItems").Error; err != nil {

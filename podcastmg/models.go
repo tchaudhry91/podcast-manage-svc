@@ -2,11 +2,13 @@ package podcastmg
 
 import (
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type User struct {
 	gorm.Model
-	UserEmail string    `gorm:"not null; unique"`
+	UserEmail string `gorm:"not null; unique"`
+	Admin     bool
 	Podcasts  []Podcast `gorm:"many2many:subscriptions;"`
 }
 
@@ -16,16 +18,41 @@ type Podcast struct {
 	Title        string `gorm:"not null"`
 	Description  string
 	ImageURL     string
-	Tags         string
 	URL          string `gorm:"not null; unique"`
+}
+
+func NewPodcast(title, description, imageURL, feedURL string, items []PodcastItem) Podcast {
+	return Podcast{
+		Title:        title,
+		Description:  description,
+		ImageURL:     imageURL,
+		URL:          feedURL,
+		PodcastItems: items,
+	}
 }
 
 type PodcastItem struct {
 	gorm.Model
-	PodcastId uint `gorm:"index"`
-	Title     string
-	MediaURL  string
-	ImageURL  string
+	PodcastId   uint `gorm:"index"`
+	Title       string
+	Content     string
+	Description string
+	MediaURL    string
+	MediaLength string
+	ImageURL    string
+	Published   *time.Time
+}
+
+func NewPodcastItem(title, description, content, mediaURL, imageURL, mediaLength string, published *time.Time) PodcastItem {
+	return PodcastItem{
+		Title:       title,
+		Description: description,
+		Content:     content,
+		MediaURL:    mediaURL,
+		MediaLength: mediaLength,
+		ImageURL:    imageURL,
+		Published:   published,
+	}
 }
 
 func (podcastItem *PodcastItem) GetParentId() uint {

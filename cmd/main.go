@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/tchaudhry91/podcast-manage-svc/podcastmg"
+	"os"
 )
 
 func main() {
@@ -20,10 +21,12 @@ func main() {
 	dbStore.Migrate()
 	fmt.Println("Migration complete")
 	user := podcastmg.User{UserEmail: "tc@test.com"}
-	podcastItem := podcastmg.PodcastItem{Title: "Episode1"}
-	podcastItem2 := podcastmg.PodcastItem{Title: "Episode2"}
-	podcast := podcastmg.Podcast{Title: "BeyondID", PodcastItems: []podcastmg.PodcastItem{podcastItem, podcastItem2}, URL: "http://beyond.com/xml"}
 	dbStore.CreateUser(&user)
+
+	podcast, err := podcastmg.BuildPodcastFromURL(os.Args[1])
+	if err != nil {
+		panic(err)
+	}
 	dbStore.CreatePodcast(&podcast)
 
 	var testUser podcastmg.User
@@ -34,7 +37,11 @@ func main() {
 
 	var testUser2 podcastmg.User
 	testUser2, _ = dbStore.GetUserFromEmail("tc@test.com")
-	fmt.Println(testUser2)
-	fmt.Println(testUser2.GetSubscriptions())
-
+	subs := testUser2.GetSubscriptions()
+	var pc podcastmg.Podcast
+	pc, err = dbStore.GetPodcast(subs[0].ID)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(pc)
 }
