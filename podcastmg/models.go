@@ -1,6 +1,7 @@
 package podcastmg
 
 import (
+	"errors"
 	"github.com/jinzhu/gorm"
 	"time"
 )
@@ -10,6 +11,17 @@ type User struct {
 	UserEmail string `gorm:"not null; unique"`
 	Admin     bool
 	Podcasts  []Podcast `gorm:"many2many:subscriptions;"`
+}
+
+func NewUser(email string, admin bool) (User, error) {
+	var user User
+	if email == "" {
+		return user, errors.New("Email cannot be empty for user")
+	}
+	return User{
+		UserEmail: email,
+		Admin:     admin,
+	}, nil
 }
 
 type Podcast struct {
