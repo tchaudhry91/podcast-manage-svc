@@ -32,7 +32,7 @@ func TestDBConnection(t *testing.T) {
 	err := store.Connect()
 	defer store.Close()
 	if err != nil {
-		t.Errorf("Could not connect to DB:%s", err.Error())
+		t.Fatalf("Could not connect to DB:%s", err.Error())
 		os.Exit(1)
 	}
 

@@ -6,6 +6,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
+// Connect creates a connection to the database based on the Store's config. This must be called before any other datastore operations
 func (dbStore *DBStore) Connect() error {
 	db, err := gorm.Open(dbStore.dialect, dbStore.connectionString)
 	if err != nil {
@@ -16,6 +17,7 @@ func (dbStore *DBStore) Connect() error {
 	return nil
 }
 
+// Close ends the connection to the database
 func (dbStore *DBStore) Close() error {
 	if dbStore.Database == nil {
 		return errors.New("Database object is nil")
@@ -24,6 +26,7 @@ func (dbStore *DBStore) Close() error {
 	return nil
 }
 
+// Migrate creates database tables and constraints based on the models. This does not delete old structures
 func (dbStore *DBStore) Migrate() error {
 	if err := dbStore.Database.AutoMigrate(&Podcast{}, &User{}, &PodcastItem{}).Error; err != nil {
 		return err
@@ -31,10 +34,12 @@ func (dbStore *DBStore) Migrate() error {
 	return nil
 }
 
+// DropExistingTables removes old tables completely from the database
 func (dbStore *DBStore) DropExistingTables() {
 	dbStore.Database.DropTableIfExists(&Podcast{}, &User{}, &PodcastItem{}, "subscriptions")
 }
 
+// CreateUser creates a user in the database, returns err if user exists
 func (dbStore *DBStore) CreateUser(user *User) error {
 	if err := dbStore.Database.Create(user).Error; err != nil {
 		return err
@@ -42,7 +47,8 @@ func (dbStore *DBStore) CreateUser(user *User) error {
 	return nil
 }
 
-func (dbStore *DBStore) GetUserFromEmail(userEmail string) (User, error) {
+// GetUserByEmail returns the user object from the database based on UserEmail
+func (dbStore *DBStore) GetUserByEmail(userEmail string) (User, error) {
 	var user User
 	if err := dbStore.Database.Where("user_email = ?", userEmail).Find(&user).Error; err != nil {
 		return user, err
@@ -53,6 +59,7 @@ func (dbStore *DBStore) GetUserFromEmail(userEmail string) (User, error) {
 	return user, nil
 }
 
+// UpdateUser updates the particular row in the database
 func (dbStore *DBStore) UpdateUser(user *User) error {
 	if err := dbStore.Database.Save(user).Error; err != nil {
 		return err
@@ -60,6 +67,24 @@ func (dbStore *DBStore) UpdateUser(user *User) error {
 	return nil
 }
 
+// DeleteUser soft-deletes the particular row in the database
+func (dbStore *DBStore) DeleteUser(user *User) error {
+	if err := dbStore.Database.Delete(user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteUserByEmail deletes a user row in database based on the emailId
+func (dbStore *DBStore) DeleteUserByEmail(email string) error {
+	user, err := dbStore.GetUserByEmail(email)
+	if err != nil {
+		return errors.New("User does not exist")
+	}
+	return dbStore.DeleteUser(&user)
+}
+
+// CreatePodcast create a new Podcast row in the database
 func (dbStore *DBStore) CreatePodcast(podcast *Podcast) error {
 	if err := dbStore.Database.Create(podcast).Error; err != nil {
 		return err
@@ -67,6 +92,7 @@ func (dbStore *DBStore) CreatePodcast(podcast *Podcast) error {
 	return nil
 }
 
+// GetPodcast returns a podcast from the database with the corresponding ID
 func (dbStore *DBStore) GetPodcast(podcastId uint) (Podcast, error) {
 	var podcast Podcast
 	if err := dbStore.Database.Where("id = ?", podcastId).Find(&podcast).Error; err != nil {
@@ -78,6 +104,7 @@ func (dbStore *DBStore) GetPodcast(podcastId uint) (Podcast, error) {
 	return podcast, nil
 }
 
+// NewDBStore returns a new DBStore with the dialect and connection string set
 func NewDBStore(dialect string, connectionString string) *DBStore {
 	dbStore := DBStore{
 		dialect,
@@ -87,6 +114,7 @@ func NewDBStore(dialect string, connectionString string) *DBStore {
 	return &dbStore
 }
 
+// DBStore is a SQL based database store
 type DBStore struct {
 	dialect          string
 	connectionString string
