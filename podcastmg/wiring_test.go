@@ -3,22 +3,13 @@ package podcastmg
 import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"os"
 	"testing"
 )
 
-func init() {
-	store = DBStore{
-		*dbDialect,
-		*dbConnectionString,
-		nil,
-	}
-	if *dbDialect == "sqlite3" {
-		os.Remove(*dbConnectionString)
-	}
-}
-
 func TestUserCreationAndPersistence(t *testing.T) {
+	store.Connect()
+	store.Migrate()
+	defer store.Close()
 	type userTestCase struct {
 		email string
 		admin bool
@@ -39,6 +30,15 @@ func TestUserCreationAndPersistence(t *testing.T) {
 			} else {
 				continue
 			}
+		}
+		err = store.CreateUser(&user)
+		if err != nil {
+			t.Errorf("Error creating user in Databse:%v", err)
+		}
+		user = User{}
+		user, err = store.GetUserFromEmail(testCase.email)
+		if err != nil {
+			t.Errorf("Error reading user from Database:%v", err)
 		}
 		if user.UserEmail != testCase.email {
 			t.Errorf("Email Want:%s\t Have:%s", testCase.email, user.UserEmail)

@@ -36,7 +36,7 @@ func (dbStore *DBStore) DropExistingTables() {
 }
 
 func (dbStore *DBStore) CreateUser(user *User) error {
-	if err := dbStore.Database.FirstOrCreate(user).Error; err != nil {
+	if err := dbStore.Database.Create(user).Error; err != nil {
 		return err
 	}
 	return nil

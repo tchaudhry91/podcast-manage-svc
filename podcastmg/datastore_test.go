@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-var dbDialect = flag.String("dbDialect", "sqlite3", "Databse dialect to use, default=sqlite3")
+var dbDialect = flag.String("dbDialect", "sqlite3", "Database dialect to use, default=sqlite3")
 var dbConnectionString = flag.String(
 	"dbConnString",
 	path.Join(os.TempDir(), "gorm.db"),
@@ -17,6 +17,7 @@ var dbConnectionString = flag.String(
 var store DBStore
 
 func init() {
+	flag.Parse()
 	store = DBStore{
 		*dbDialect,
 		*dbConnectionString,
@@ -32,6 +33,7 @@ func TestDBConnection(t *testing.T) {
 	defer store.Close()
 	if err != nil {
 		t.Errorf("Could not connect to DB:%s", err.Error())
+		os.Exit(1)
 	}
 
 	// Empty Store
@@ -50,10 +52,6 @@ func TestDBClosure(t *testing.T) {
 	err = store.Close()
 	if err != nil {
 		t.Errorf("Could not close the DB succesfully:%s", err.Error())
-	}
-	err = store.Database.CreateTable("test").Error
-	if err == nil {
-		t.Errorf("Should return error trying to operate on closed DB")
 	}
 
 	// Empty Store
