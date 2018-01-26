@@ -22,9 +22,9 @@ func init() {
 	}
 
 	sampleUsers = []User{
-		{UserEmail: "a@test.com", Admin: false},
-		{UserEmail: "b@test.com", Admin: false, Podcasts: []Podcast{samplePodcasts[1], samplePodcasts[2]}},
-		{UserEmail: "", Admin: false},
+		{UserEmail: "a@test.com", Admin: false, Password: "123123"},
+		{UserEmail: "b@test.com", Admin: false, Podcasts: []Podcast{samplePodcasts[1], samplePodcasts[2]}, Password: "test"},
+		{UserEmail: "", Admin: false, Password: "nothing"},
 		{},
 	}
 
@@ -45,6 +45,28 @@ func TestUserEmail(t *testing.T) {
 	for _, testCase := range testCases {
 		if have := testCase.user.GetUserEmail(); have != testCase.want {
 			t.Errorf("Want: %v\t Have:%v\n", testCase.want, have)
+		}
+	}
+}
+
+func TestUserPasswordHash(t *testing.T) {
+	type userPassTestCase struct {
+		emailID       string
+		password      string
+		errorExpected bool
+	}
+	testCases := []userPassTestCase{
+		{"user1@test.com", "test_pass", false},
+		{"user2@test.com", "", true},
+		{"user3@wwe.com", "simple", false},
+	}
+	for _, testCase := range testCases {
+		user, err := NewUser(testCase.emailID, testCase.password)
+		if err != nil && !testCase.errorExpected {
+			t.Errorf("Error Creating user:%v", err)
+		}
+		if err = user.ComparePassword(testCase.password); err != nil && !testCase.errorExpected {
+			t.Errorf("Password match failed for %s:%v", testCase.password, err)
 		}
 	}
 }

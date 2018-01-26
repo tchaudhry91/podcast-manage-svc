@@ -6,6 +6,20 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
+// Store is an interface that defines the methods needed for a podcast-manage service datastore
+type Store interface {
+	Connect() error
+	Close() error
+	Migrate() error
+	CleanStore() error
+	CreateUser(User) error
+	GetUserByEmail(string) (User, error)
+	UpdateUser(User) error
+	DeleteUserByEmail(string) (User, error)
+	GetPodcastById(uint) (Podcast, error)
+	CreatePodcast(Podcast) error
+}
+
 // Connect creates a connection to the database based on the Store's config. This must be called before any other datastore operations
 func (dbStore *DBStore) Connect() error {
 	db, err := gorm.Open(dbStore.dialect, dbStore.connectionString)
@@ -37,6 +51,11 @@ func (dbStore *DBStore) Migrate() error {
 // DropExistingTables removes old tables completely from the database
 func (dbStore *DBStore) DropExistingTables() {
 	dbStore.Database.DropTableIfExists(&Podcast{}, &User{}, &PodcastItem{}, "subscriptions")
+}
+
+// CleanStore clears the database's existing tables
+func (dbStore *DBStore) CleanStore() {
+	dbStore.DropExistingTables()
 }
 
 // CreateUser creates a user in the database, returns err if user exists
@@ -92,8 +111,8 @@ func (dbStore *DBStore) CreatePodcast(podcast *Podcast) error {
 	return nil
 }
 
-// GetPodcast returns a podcast from the database with the corresponding ID
-func (dbStore *DBStore) GetPodcast(podcastId uint) (Podcast, error) {
+// GetPodcastById returns a podcast from the database with the corresponding ID
+func (dbStore *DBStore) GetPodcastById(podcastId uint) (Podcast, error) {
 	var podcast Podcast
 	if err := dbStore.Database.Where("id = ?", podcastId).Find(&podcast).Error; err != nil {
 		return podcast, err

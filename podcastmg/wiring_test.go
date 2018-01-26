@@ -11,22 +11,22 @@ func TestUserCreationAndPersistence(t *testing.T) {
 	store.Migrate()
 	defer store.Close()
 	type userTestCase struct {
-		email string
-		admin bool
-		err   bool
+		email    string
+		password string
+		admin    bool
+		err      bool
 	}
 	testCases := []userTestCase{
-		{"tc@test.com", false, false},
-		{"bg@example.com", false, false},
-		{"tt32@ghh.com", false, false},
-		{"", false, true},
-		{"admin@tt.com", true, false},
+		{"tc@test.com", "what", false, false},
+		{"bg@example.com", "should", false, false},
+		{"tt32@ghh.com", "samplepassword", false, true},
+		{"", "", false, true},
 	}
 	for _, testCase := range testCases {
-		user, err := NewUser(testCase.email, testCase.admin)
+		user, err := NewUser(testCase.email, testCase.password)
 		if err != nil {
 			if !testCase.err {
-				t.Errorf("Error in creating user: %v", err)
+				t.Errorf("Error in creating user:%s: %v", testCase.email, err)
 			} else {
 				continue
 			}
@@ -52,7 +52,7 @@ func TestUserCreationAndPersistence(t *testing.T) {
 
 	// Test for primary key violation
 	t.Run("Duplicate Email", func(t *testing.T) {
-		user, err := NewUser(testCases[0].email, false)
+		user, err := NewUser(testCases[0].email, testCases[0].password)
 		err = store.CreateUser(&user)
 		if err == nil {
 			t.Errorf("Should have errored in duplicate user creation")
