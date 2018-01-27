@@ -16,8 +16,8 @@ func init() {
 	}
 
 	sampleItems = []PodcastItem{
-		{Title: "Episode1", PodcastId: 1},
-		{Title: "Episode2", PodcastId: 2},
+		{Title: "Episode1", PodcastID: 1},
+		{Title: "Episode2", PodcastID: 2},
 		{Title: "Episode1"},
 	}
 
@@ -110,7 +110,7 @@ func TestPodcastItems(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		if have := testCase.item.GetParentId(); have != testCase.want {
+		if have := testCase.item.GetParentID(); have != testCase.want {
 			t.Errorf("Get Podcast Parent ID\thave:%v\twant:%v", have, testCase.want)
 		}
 	}

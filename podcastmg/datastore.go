@@ -3,7 +3,7 @@ package podcastmg
 import (
 	"errors"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	_ "github.com/jinzhu/gorm/dialects/postgres" // Postgres driver for gorm
 )
 
 // Store is an interface that defines the methods needed for a podcast-manage service datastore
@@ -16,7 +16,7 @@ type Store interface {
 	GetUserByEmail(string) (User, error)
 	UpdateUser(User) error
 	DeleteUserByEmail(string) (User, error)
-	GetPodcastById(uint) (Podcast, error)
+	GetPodcastByID(uint) (Podcast, error)
 	CreatePodcast(Podcast) error
 }
 
@@ -111,10 +111,10 @@ func (dbStore *DBStore) CreatePodcast(podcast *Podcast) error {
 	return nil
 }
 
-// GetPodcastById returns a podcast from the database with the corresponding ID
-func (dbStore *DBStore) GetPodcastById(podcastId uint) (Podcast, error) {
+// GetPodcastByID returns a podcast from the database with the corresponding ID
+func (dbStore *DBStore) GetPodcastByID(podcastID uint) (Podcast, error) {
 	var podcast Podcast
-	if err := dbStore.Database.Where("id = ?", podcastId).Find(&podcast).Error; err != nil {
+	if err := dbStore.Database.Where("id = ?", podcastID).Find(&podcast).Error; err != nil {
 		return podcast, err
 	}
 	if err := dbStore.Database.Model(&podcast).Related(&podcast.PodcastItems, "PodcastItems").Error; err != nil {

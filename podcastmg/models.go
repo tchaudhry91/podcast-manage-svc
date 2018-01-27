@@ -10,9 +10,9 @@ import (
 // User is a struct that holds information of a User
 type User struct {
 	gorm.Model `json:"-"`
-	UserEmail  string    `gorm:"not null; unique" json:"user_email"`
-	password   string    `gorm:"not null;" json:"-"`
-	admin      bool      `json:"-"`
+	UserEmail  string `gorm:"not null; unique" json:"user_email"`
+	password   string `gorm:"not null;"`
+	admin      bool
 	Podcasts   []Podcast `gorm:"many2many:subscriptions;" json:"podcasts"`
 }
 
@@ -58,7 +58,7 @@ func NewPodcast(title, description, imageURL, feedURL string, items []PodcastIte
 // PodcastItem is a struct representing a single item in a given podcast
 type PodcastItem struct {
 	gorm.Model  `json:"-"`
-	PodcastId   uint       `gorm:"index" json:"podcast_id"`
+	PodcastID   uint       `gorm:"index" json:"podcast_id"`
 	Title       string     `json:"title"`
 	Content     string     `json:"content"`
 	Description string     `json:"description"`
@@ -82,8 +82,8 @@ func NewPodcastItem(title, description, content, mediaURL, imageURL, mediaLength
 }
 
 // GetParentID returns the PodcastID of the podcast that the Item is a part of
-func (podcastItem *PodcastItem) GetParentId() uint {
-	return podcastItem.PodcastId
+func (podcastItem *PodcastItem) GetParentID() uint {
+	return podcastItem.PodcastID
 }
 
 // GetItems returns the slice of PodcastItem which belongs to this podcast
@@ -91,7 +91,7 @@ func (podcast *Podcast) GetItems() []PodcastItem {
 	return podcast.PodcastItems
 }
 
-// AddSubscriptions adds a podcast to the user's slice of subscribed podcasts
+// AddSubscription adds a podcast to the user's slice of subscribed podcasts
 func (user *User) AddSubscription(podcast Podcast) {
 	user.Podcasts = append(user.Podcasts, podcast)
 }
@@ -106,7 +106,7 @@ func (user *User) GetUserEmail() string {
 	return user.UserEmail
 }
 
-// ComparePasswords compares the user's hashed password to the given password, returns nil on success
+// ComparePassword compares the user's hashed password to the given password, returns nil on success
 func (user *User) ComparePassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(user.password), []byte(password))
 }

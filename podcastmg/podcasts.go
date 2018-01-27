@@ -30,7 +30,7 @@ func buildItemsFromFeedItems(feedItems []*gofeed.Item) []PodcastItem {
 	return podcastItems
 }
 
-// BuildPodcastFromUrl returns a populated podcast struct from the feedURL
+// BuildPodcastFromURL returns a populated podcast struct from the feedURL
 func BuildPodcastFromURL(feedURL string) (Podcast, error) {
 	var pc Podcast
 	feed, err := parseFeed(feedURL)
