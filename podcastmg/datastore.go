@@ -11,13 +11,13 @@ type Store interface {
 	Connect() error
 	Close() error
 	Migrate() error
-	CleanStore() error
-	CreateUser(User) error
+	CleanStore()
+	CreateUser(*User) error
 	GetUserByEmail(string) (User, error)
-	UpdateUser(User) error
-	DeleteUserByEmail(string) (User, error)
+	UpdateUser(*User) error
+	DeleteUserByEmail(string) error
 	GetPodcastByID(uint) (Podcast, error)
-	CreatePodcast(Podcast) error
+	CreatePodcast(*Podcast) error
 }
 
 // Connect creates a connection to the database based on the Store's config. This must be called before any other datastore operations
