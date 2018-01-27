@@ -22,9 +22,9 @@ func init() {
 	}
 
 	sampleUsers = []User{
-		{UserEmail: "a@test.com", Admin: false, Password: "123123"},
-		{UserEmail: "b@test.com", Admin: false, Podcasts: []Podcast{samplePodcasts[1], samplePodcasts[2]}, Password: "test"},
-		{UserEmail: "", Admin: false, Password: "nothing"},
+		{UserEmail: "a@test.com", admin: false, password: "123123"},
+		{UserEmail: "b@test.com", admin: false, Podcasts: []Podcast{samplePodcasts[1], samplePodcasts[2]}, password: "test"},
+		{UserEmail: "", admin: false, password: "nothing"},
 		{},
 	}
 
@@ -49,7 +49,7 @@ func TestUserEmail(t *testing.T) {
 	}
 }
 
-func TestUserPasswordHash(t *testing.T) {
+func TestUserpasswordHash(t *testing.T) {
 	type userPassTestCase struct {
 		emailID       string
 		password      string
@@ -66,7 +66,7 @@ func TestUserPasswordHash(t *testing.T) {
 			t.Errorf("Error Creating user:%v", err)
 		}
 		if err = user.ComparePassword(testCase.password); err != nil && !testCase.errorExpected {
-			t.Errorf("Password match failed for %s:%v", testCase.password, err)
+			t.Errorf("password match failed for %s:%v", testCase.password, err)
 		}
 	}
 }

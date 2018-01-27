@@ -43,9 +43,9 @@ func TestUserCreationAndPersistence(t *testing.T) {
 		if user.UserEmail != testCase.email {
 			t.Errorf("Email Want:%s\t Have:%s", testCase.email, user.UserEmail)
 		}
-		if user.Admin != testCase.admin {
-			if user.Admin {
-				t.Errorf("Incorrect Admin Flag:%v", testCase)
+		if user.admin != testCase.admin {
+			if user.admin {
+				t.Errorf("Incorrect admin Flag:%v", testCase)
 			}
 		}
 	}

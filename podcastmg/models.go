@@ -11,8 +11,8 @@ import (
 type User struct {
 	gorm.Model `json:"-"`
 	UserEmail  string    `gorm:"not null; unique" json:"user_email"`
-	Password   string    `gorm:"not null;" json:"-"`
-	Admin      bool      `json:"-"`
+	password   string    `gorm:"not null;" json:"-"`
+	admin      bool      `json:"-"`
 	Podcasts   []Podcast `gorm:"many2many:subscriptions;" json:"podcasts"`
 }
 
@@ -29,8 +29,8 @@ func NewUser(email, password string) (User, error) {
 	passwordHash := string(passwordHashBytes)
 	return User{
 		UserEmail: email,
-		Admin:     false,
-		Password:  passwordHash,
+		admin:     false,
+		password:  passwordHash,
 	}, nil
 }
 
@@ -108,5 +108,5 @@ func (user *User) GetUserEmail() string {
 
 // ComparePasswords compares the user's hashed password to the given password, returns nil on success
 func (user *User) ComparePassword(password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	return bcrypt.CompareHashAndPassword([]byte(user.password), []byte(password))
 }
