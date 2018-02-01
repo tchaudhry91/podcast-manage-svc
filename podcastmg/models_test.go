@@ -22,9 +22,9 @@ func init() {
 	}
 
 	sampleUsers = []User{
-		{UserEmail: "a@test.com", admin: false, password: "123123"},
-		{UserEmail: "b@test.com", admin: false, Podcasts: []Podcast{samplePodcasts[1], samplePodcasts[2]}, password: "test"},
-		{UserEmail: "", admin: false, password: "nothing"},
+		{UserEmail: "a@test.com", admin: false, Password: "123123"},
+		{UserEmail: "b@test.com", admin: false, Podcasts: []Podcast{samplePodcasts[1], samplePodcasts[2]}, Password: "test"},
+		{UserEmail: "", admin: false, Password: "nothing"},
 		{},
 	}
 
