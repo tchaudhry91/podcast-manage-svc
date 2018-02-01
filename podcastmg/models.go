@@ -11,7 +11,7 @@ import (
 type User struct {
 	gorm.Model `json:"-"`
 	UserEmail  string `gorm:"not null; unique" json:"user_email"`
-	Password   string `gorm:"not null;"`
+	Password   string `gorm:"not null;" json:"-"`
 	admin      bool
 	Podcasts   []Podcast `gorm:"many2many:subscriptions;" json:"podcasts"`
 }

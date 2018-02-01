@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/tchaudhry91/podcast-manage-svc/podcastmg"
 )
 
 // Endpoints is a struct which contains a full list of endpoints for the PodcastManageService
@@ -19,6 +20,7 @@ type Endpoints struct {
 func MakeServerEndpoints(svc PodcastManageService) Endpoints {
 	return Endpoints{
 		CreateUserEndpoint: MakeCreateUserEndpoint(svc),
+		GetUserEndpoint:    MakeGetUserEndpoint(svc),
 	}
 }
 
@@ -28,10 +30,31 @@ func MakeCreateUserEndpoint(svc PodcastManageService) endpoint.Endpoint {
 		req := request.(createUserRequest)
 		e := svc.CreateUser(ctx, req.EmailID, req.Password)
 		if e != nil {
-			return createUserResponse{e.Error()}, nil
+			return createUserResponse{false, e.Error()}, nil
 		}
-		return createUserResponse{Err: ""}, nil
+		return createUserResponse{Status: true, Err: ""}, nil
 	}
+}
+
+// MakeGetUserEndpoint returns a GetUserEndpoint via the passed service
+func MakeGetUserEndpoint(svc PodcastManageService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(getUserRequest)
+		user, e := svc.GetUser(ctx, req.EmailID)
+		if e != nil {
+			return getUserResponse{User: user, Err: e.Error()}, nil
+		}
+		return getUserResponse{user, ""}, nil
+	}
+}
+
+type getUserRequest struct {
+	EmailID string `json:"email_id"`
+}
+
+type getUserResponse struct {
+	User podcastmg.User `json:"user"`
+	Err  string         `json:"err,omitempty"`
 }
 
 type createUserRequest struct {
@@ -40,5 +63,6 @@ type createUserRequest struct {
 }
 
 type createUserResponse struct {
-	Err string `json:"err,omitempty"`
+	Status bool   `json:"status"`
+	Err    string `json:"err,omitempty"`
 }
