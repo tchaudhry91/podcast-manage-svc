@@ -13,7 +13,7 @@ type User struct {
 	UserEmail  string `gorm:"not null; unique" json:"user_email"`
 	Password   string `gorm:"not null;" json:"-"`
 	admin      bool
-	Podcasts   []Podcast `gorm:"many2many:subscriptions;" json:"podcasts"`
+	Podcasts   []Podcast `gorm:"many2many:subscriptions;" json:"-"`
 }
 
 // NewUser constructs a User struct with the given email and password
