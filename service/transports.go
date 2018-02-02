@@ -28,7 +28,21 @@ func MakeHTTPHandler(svc PodcastManageService) http.Handler {
 		decodeGetUserRequest,
 		encodeGenericResponse,
 	))
+
+	router.Methods("POST").Path("/podcast").Handler(kithttp.NewServer(
+		endpoints.GetPodcastDetailsEndpoint,
+		decodeGetPodcastDetailsRequest,
+		encodeGenericResponse,
+	))
 	return router
+}
+
+func decodeGetPodcastDetailsRequest(ctx context.Context, req *http.Request) (request interface{}, err error) {
+	var podReq getPodcastDetailsRequest
+	if err := json.NewDecoder(req.Body).Decode(&podReq); err != nil {
+		return nil, ErrJSONUnmarshall
+	}
+	return podReq, nil
 }
 
 func decodeGetUserRequest(ctx context.Context, req *http.Request) (request interface{}, err error) {

@@ -19,8 +19,9 @@ type Endpoints struct {
 // MakeServerEndpoints returns a struct containing all the endpoints for a PodcastManageService
 func MakeServerEndpoints(svc PodcastManageService) Endpoints {
 	return Endpoints{
-		CreateUserEndpoint: MakeCreateUserEndpoint(svc),
-		GetUserEndpoint:    MakeGetUserEndpoint(svc),
+		CreateUserEndpoint:        MakeCreateUserEndpoint(svc),
+		GetUserEndpoint:           MakeGetUserEndpoint(svc),
+		GetPodcastDetailsEndpoint: MakeGetPodcastDetailsEndpoint(svc),
 	}
 }
 
@@ -46,6 +47,27 @@ func MakeGetUserEndpoint(svc PodcastManageService) endpoint.Endpoint {
 		}
 		return getUserResponse{user, ""}, nil
 	}
+}
+
+// MakeGetPodcastDetailsEndpoint returns a GetPodcastDetailsEndpoint via the passed service
+func MakeGetPodcastDetailsEndpoint(svc PodcastManageService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(getPodcastDetailsRequest)
+		podcast, err := svc.GetPodcastDetails(ctx, req.URL)
+		if err != nil {
+			return getPodcastDetailsResponse{Podcast: podcast, Err: err.Error()}, nil
+		}
+		return getPodcastDetailsResponse{Podcast: podcast, Err: ""}, nil
+	}
+}
+
+type getPodcastDetailsRequest struct {
+	URL string `json:"url"`
+}
+
+type getPodcastDetailsResponse struct {
+	Podcast podcastmg.Podcast
+	Err     string `json:"err,omitempty"`
 }
 
 type getUserRequest struct {
