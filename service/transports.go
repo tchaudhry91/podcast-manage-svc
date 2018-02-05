@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	ErrJSONUnmarshall = errors.New("Failed to parse incoming JSON")
+	ErrJSONUnmarshall = errors.New("Failed to parse incoming JSON") // Indicates an unparsable JSON input
 )
 
 func MakeHTTPHandler(svc PodcastManageService) http.Handler {
@@ -34,7 +34,21 @@ func MakeHTTPHandler(svc PodcastManageService) http.Handler {
 		decodeGetPodcastDetailsRequest,
 		encodeGenericResponse,
 	))
+
+	router.Methods("POST").Path("/subscribe").Handler(kithttp.NewServer(
+		endpoints.SubscribeEndpoint,
+		decodeSubscribeRequest,
+		encodeGenericResponse,
+	))
 	return router
+}
+
+func decodeSubscribeRequest(ctx context.Context, req *http.Request) (request interface{}, err error) {
+	var subReq subscribeRequest
+	if err := json.NewDecoder(req.Body).Decode(&subReq); err != nil {
+		return nil, ErrJSONUnmarshall
+	}
+	return subReq, nil
 }
 
 func decodeGetPodcastDetailsRequest(ctx context.Context, req *http.Request) (request interface{}, err error) {
