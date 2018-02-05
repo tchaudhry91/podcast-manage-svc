@@ -10,9 +10,11 @@ import (
 )
 
 var (
-	ErrJSONUnmarshall = errors.New("Failed to parse incoming JSON") // Indicates an unparsable JSON input
+	// ErrJSONUnmarshall is an error when the JSON parsing fails on the request
+	ErrJSONUnmarshall = errors.New("Failed to parse incoming JSON")
 )
 
+// MakeHTTPHandler returns a router for the podcast-manager-service
 func MakeHTTPHandler(svc PodcastManageService) http.Handler {
 	router := mux.NewRouter()
 	endpoints := MakeServerEndpoints(svc)

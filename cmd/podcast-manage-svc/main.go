@@ -47,6 +47,7 @@ func main() {
 	http.ListenAndServe(*httpAddr, h)
 }
 
+// BuildDBConnString returns a GORM connection string from the given parameters
 func BuildDBConnString(dialect, hostname, user, password, name string) (connString string) {
 	switch dialect {
 	case "postgres":
