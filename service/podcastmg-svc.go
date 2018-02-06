@@ -13,6 +13,7 @@ type PodcastManageService interface {
 	GetPodcastDetails(ctx context.Context, url string) (podcastmg.Podcast, error)
 	Subscribe(ctx context.Context, emailID, podcastURL string) error
 	GetUserSubscriptions(ctx context.Context, emailID string) ([]podcastmg.Podcast, error)
+	GetSubscriptionDetails(ctx context.Context, emailID, podcastURL string) (podcastmg.Podcast, error)
 	GetToken(ctx context.Context, emailID, password string) (string, error)
 }
 
@@ -114,6 +115,21 @@ func (svc *podcastManageService) GetUserSubscriptions(ctx context.Context, email
 		return subscriptions, err
 	}
 	return user.GetSubscriptions(), nil
+}
+
+// GetSubscriptionDetails returns a populated podcast with items based on the user subscription
+func (svc *podcastManageService) GetSubscriptionDetails(ctx context.Context, emailID, podcastURL string) (podcastmg.Podcast, error) {
+	var podcast podcastmg.Podcast
+	err := svc.store.Connect()
+	if err != nil {
+		return podcast, err
+	}
+	defer svc.store.Close()
+	podcast, err = svc.store.GetPodcastBySubscription(emailID, podcastURL)
+	if err != nil {
+		return podcast, err
+	}
+	return podcast, nil
 }
 
 // GetToken returns a JWT token for service authorization

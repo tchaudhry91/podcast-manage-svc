@@ -42,7 +42,35 @@ func MakeHTTPHandler(svc PodcastManageService) http.Handler {
 		decodeSubscribeRequest,
 		encodeGenericResponse,
 	))
+
+	router.Methods("POST").Path("/subscriptions").Handler(kithttp.NewServer(
+		endpoints.GetUserSubscriptionsEndpoint,
+		decodeGetUserSubscriptionsRequest,
+		encodeGenericResponse,
+	))
+
+	router.Methods("POST").Path("/subscription").Handler(kithttp.NewServer(
+		endpoints.GetSubscriptionDetailsEndpoint,
+		decodeGetSubscriptionDetailsRequest,
+		encodeGenericResponse,
+	))
 	return router
+}
+
+func decodeGetSubscriptionDetailsRequest(ctx context.Context, req *http.Request) (request interface{}, err error) {
+	var subReq getSubscriptionDetailsRequest
+	if err := json.NewDecoder(req.Body).Decode(&subReq); err != nil {
+		return nil, ErrJSONUnmarshall
+	}
+	return subReq, nil
+}
+
+func decodeGetUserSubscriptionsRequest(ctx context.Context, req *http.Request) (request interface{}, err error) {
+	var subReq getUserSubscriptionsRequest
+	if err := json.NewDecoder(req.Body).Decode(&subReq); err != nil {
+		return nil, ErrJSONUnmarshall
+	}
+	return subReq, nil
 }
 
 func decodeSubscribeRequest(ctx context.Context, req *http.Request) (request interface{}, err error) {

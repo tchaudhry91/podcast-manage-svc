@@ -17,6 +17,7 @@ type Store interface {
 	UpdateUser(*User) error
 	DeleteUserByEmail(string) error
 	GetPodcastByID(uint) (Podcast, error)
+	GetPodcastBySubscription(userEmail string, podcastURL string) (Podcast, error)
 	CreatePodcast(*Podcast) error
 }
 
@@ -103,12 +104,28 @@ func (dbStore *DBStore) DeleteUserByEmail(email string) error {
 	return dbStore.DeleteUser(&user)
 }
 
-// CreatePodcast create a new Podcast row in the database
+// CreatePodcast creates a new Podcast row in the database
 func (dbStore *DBStore) CreatePodcast(podcast *Podcast) error {
 	if err := dbStore.Database.Create(podcast).Error; err != nil {
 		return err
 	}
 	return nil
+}
+
+// GetPodcastBySubscription returns a populated podcast with items for the for the user subscription
+func (dbStore *DBStore) GetPodcastBySubscription(userEmail string, podcastURL string) (Podcast, error) {
+	var podcast Podcast
+	var user User
+	if err := dbStore.Database.Where("user_email = ?", userEmail).Find(&user).Error; err != nil {
+		return podcast, err
+	}
+	if err := dbStore.Database.Model(&user).Related(&podcast, "Podcasts").Where("url = ?", podcastURL).Error; err != nil {
+		return podcast, err
+	}
+	if err := dbStore.Database.Model(&podcast).Related(&podcast.PodcastItems, "PodcastItems").Error; err != nil {
+		return podcast, err
+	}
+	return podcast, nil
 }
 
 // GetPodcastByID returns a podcast from the database with the corresponding ID

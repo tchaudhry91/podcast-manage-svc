@@ -41,7 +41,7 @@ type Podcast struct {
 	Title        string        `gorm:"not null" json:"title"`
 	Description  string        `json:"description"`
 	ImageURL     string        `json:"image_url"`
-	URL          string        `gorm:"not null; unique" json:"url"`
+	URL          string        `gorm:"not null;" json:"url"`
 }
 
 // NewPodcast constructs a Podcast struct with the given parameters
@@ -93,7 +93,21 @@ func (podcast *Podcast) GetItems() []PodcastItem {
 
 // AddSubscription adds a podcast to the user's slice of subscribed podcasts
 func (user *User) AddSubscription(podcast Podcast) {
+	// Do no re-subscribe if subcription already exists
+	if user.CheckSubscription(podcast) {
+		return
+	}
 	user.Podcasts = append(user.Podcasts, podcast)
+}
+
+// CheckSubscriptions checks presence of a subscription for a given user
+func (user *User) CheckSubscription(podcast Podcast) bool {
+	for _, upodcast := range user.Podcasts {
+		if podcast.URL == upodcast.URL {
+			return true
+		}
+	}
+	return false
 }
 
 // GetSubscriptions returns a slice of podcasts that the user is subscribed to
