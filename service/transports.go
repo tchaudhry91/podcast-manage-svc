@@ -22,6 +22,7 @@ func MakeHTTPHandler(svc PodcastManageService, signingString string) http.Handle
 	endpoints := MakeServerEndpoints(svc)
 	serverOptions := []kithttp.ServerOption{
 		kithttp.ServerBefore(kitjwt.HTTPToContext()),
+		kithttp.ServerErrorEncoder(encodeError),
 	}
 
 	kf := func(token *jwt.Token) (interface{}, error) {
@@ -91,6 +92,19 @@ func MakeHTTPHandler(svc PodcastManageService, signingString string) http.Handle
 	return router
 }
 
+func encodeError(_ context.Context, err error, w http.ResponseWriter) {
+	if err == nil {
+		panic("encodeError with nil error")
+	}
+	w.WriteHeader(codeFrom(err))
+	e := json.NewEncoder(w).Encode(map[string]interface{}{
+		"err": err.Error(),
+	})
+	if e != nil {
+		panic("Error encoding error")
+	}
+}
+
 func decodeGetTokenRequest(ctx context.Context, req *http.Request) (request interface{}, err error) {
 	var tokenReq getTokenRequest
 	if err := json.NewDecoder(req.Body).Decode(&tokenReq); err != nil {
@@ -149,4 +163,27 @@ func decodeCreateUserRequest(ctx context.Context, req *http.Request) (request in
 
 func encodeGenericResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
 	return json.NewEncoder(w).Encode(response)
+}
+
+func codeFrom(err error) int {
+	switch err {
+	case ErrJSONUnmarshall:
+		return http.StatusBadRequest
+	case ErrUserFetch:
+		return http.StatusBadRequest
+	case ErrInvalidPassword:
+		return http.StatusBadRequest
+	case kitjwt.ErrTokenContextMissing:
+		return http.StatusBadRequest
+	case kitjwt.ErrTokenInvalid:
+		return http.StatusBadRequest
+	case kitjwt.ErrTokenExpired:
+		return http.StatusBadRequest
+	case kitjwt.ErrTokenMalformed:
+		return http.StatusBadRequest
+	case kitjwt.ErrTokenNotActive:
+		return http.StatusBadRequest
+	default:
+		return http.StatusInternalServerError
+	}
 }

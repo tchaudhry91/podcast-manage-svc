@@ -34,7 +34,7 @@ func main() {
 	var svc service.PodcastManageService
 	{
 		var err error
-		svc, err = service.NewSQLStorePodcastManageService(*dbDialect, dbConnString, *svcSigningSecret)
+		svc, err = service.NewSQLStorePodcastManageService(*dbDialect, dbConnString, *svcSigningSecret, logger)
 		if err != nil {
 			logger.Log("err", err.Error())
 			panic("Could not create service")
