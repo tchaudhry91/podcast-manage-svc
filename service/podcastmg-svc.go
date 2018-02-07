@@ -2,9 +2,16 @@ package service
 
 import (
 	"context"
-	"github.com/go-kit/kit/log"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/tchaudhry91/podcast-manage-svc/podcastmg"
+	"time"
 )
+
+// TokenClaims is a custom claims struct to issue JWT tokens
+type TokenClaims struct {
+	EmailID string `json:"email_id"`
+	jwt.StandardClaims
+}
 
 // PodcastManageService is service to manage podcast rss-feeds
 type PodcastManageService interface {
@@ -18,12 +25,12 @@ type PodcastManageService interface {
 }
 
 type podcastManageService struct {
-	store  podcastmg.Store
-	logger log.Logger
+	store              podcastmg.Store
+	tokenSigningString string
 }
 
 // NewSQLStorePodcastManageService returns a pmg-svc backed by a SQL based DB Store
-func NewSQLStorePodcastManageService(dialect, connectionString string) (PodcastManageService, error) {
+func NewSQLStorePodcastManageService(dialect, connectionString, tokenSigningString string) (PodcastManageService, error) {
 	var svc podcastManageService
 	store := podcastmg.NewDBStore(dialect, connectionString)
 	err := store.Connect()
@@ -35,8 +42,10 @@ func NewSQLStorePodcastManageService(dialect, connectionString string) (PodcastM
 	if err != nil {
 		return &svc, err
 	}
+
 	svc = podcastManageService{
-		store: store,
+		store:              store,
+		tokenSigningString: tokenSigningString,
 	}
 	return &svc, nil
 }
@@ -133,6 +142,32 @@ func (svc *podcastManageService) GetSubscriptionDetails(ctx context.Context, ema
 }
 
 // GetToken returns a JWT token for service authorization
-func (svc *podcastManageService) GetToken(ctx context.Context, emailID string, password string) (string, error) {
-	panic("not implemented")
+func (svc *podcastManageService) GetToken(ctx context.Context, emailID string, password string) (tokenString string, err error) {
+	err = svc.store.Connect()
+	if err != nil {
+		return tokenString, err
+	}
+	user, err := svc.store.GetUserByEmail(emailID)
+	if err != nil {
+		return tokenString, err
+	}
+	err = user.ComparePassword(password)
+	if err != nil {
+		return tokenString, err
+	}
+
+	claims :=
+		TokenClaims{
+			emailID,
+			jwt.StandardClaims{
+				ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+			},
+		}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err = token.SignedString([]byte(svc.tokenSigningString))
+	if err != nil {
+		return tokenString, err
+	}
+	return tokenString, err
 }

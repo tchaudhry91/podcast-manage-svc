@@ -26,6 +26,19 @@ func MakeServerEndpoints(svc PodcastManageService) Endpoints {
 		SubscribeEndpoint:              MakeSubscribeEndpoint(svc),
 		GetUserSubscriptionsEndpoint:   MakeGetUserSubscriptionsEndpoint(svc),
 		GetSubscriptionDetailsEndpoint: MakeGetSubscriptionDetailsEndpoint(svc),
+		GetTokenEndpoint:               MakeGetTokenEndpoint(svc),
+	}
+}
+
+// MakeGetTokenEndpoint returns a GetTokenEndpoint via the passed service
+func MakeGetTokenEndpoint(svc PodcastManageService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(getTokenRequest)
+		tokenString, e := svc.GetToken(ctx, req.EmailID, req.Password)
+		if e != nil {
+			return getTokenResponse{tokenString, e.Error()}, nil
+		}
+		return getTokenResponse{tokenString, ""}, nil
 	}
 }
 
@@ -99,6 +112,16 @@ func MakeSubscribeEndpoint(svc PodcastManageService) endpoint.Endpoint {
 		}
 		return subscribeResponse{Status: true, Err: ""}, nil
 	}
+}
+
+type getTokenRequest struct {
+	EmailID  string `json:"email_id"`
+	Password string `json:"password"`
+}
+
+type getTokenResponse struct {
+	TokenString string `json:"token_string"`
+	Err         string `json:"err,omitempty"`
 }
 
 type getSubscriptionDetailsRequest struct {
