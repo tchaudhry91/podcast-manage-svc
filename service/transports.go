@@ -30,6 +30,7 @@ func MakeHTTPHandler(svc PodcastManageService, signingString string) http.Handle
 	claimsFetcher := func() jwt.Claims {
 		return &TokenClaims{}
 	}
+	authMiddleware := kitjwt.NewParser(kf, jwt.SigningMethodHS256, claimsFetcher)
 
 	router.Methods("POST").Path("/register").Handler(kithttp.NewServer(
 		endpoints.CreateUserEndpoint,
@@ -39,7 +40,7 @@ func MakeHTTPHandler(svc PodcastManageService, signingString string) http.Handle
 	))
 
 	getUserEndpoint := endpoints.GetUserEndpoint
-	getUserEndpoint = kitjwt.NewParser(kf, jwt.SigningMethodHS256, claimsFetcher)(getUserEndpoint)
+	getUserEndpoint = authMiddleware(getUserEndpoint)
 	router.Methods("POST").Path("/user").Handler(kithttp.NewServer(
 		getUserEndpoint,
 		decodeGetUserRequest,
@@ -54,22 +55,28 @@ func MakeHTTPHandler(svc PodcastManageService, signingString string) http.Handle
 		serverOptions...,
 	))
 
+	subscribeEndpoint := endpoints.SubscribeEndpoint
+	subscribeEndpoint = authMiddleware(subscribeEndpoint)
 	router.Methods("POST").Path("/subscribe").Handler(kithttp.NewServer(
-		endpoints.SubscribeEndpoint,
+		subscribeEndpoint,
 		decodeSubscribeRequest,
 		encodeGenericResponse,
 		serverOptions...,
 	))
 
+	subscriptionsEndpoint := endpoints.GetUserSubscriptionsEndpoint
+	subscriptionsEndpoint = authMiddleware(subscriptionsEndpoint)
 	router.Methods("POST").Path("/subscriptions").Handler(kithttp.NewServer(
-		endpoints.GetUserSubscriptionsEndpoint,
+		subscriptionsEndpoint,
 		decodeGetUserSubscriptionsRequest,
 		encodeGenericResponse,
 		serverOptions...,
 	))
 
+	subscriptionEndpoint := endpoints.GetSubscriptionDetailsEndpoint
+	subscriptionEndpoint = authMiddleware(subscriptionEndpoint)
 	router.Methods("POST").Path("/subscription").Handler(kithttp.NewServer(
-		endpoints.GetSubscriptionDetailsEndpoint,
+		subscriptionEndpoint,
 		decodeGetSubscriptionDetailsRequest,
 		encodeGenericResponse,
 		serverOptions...,
