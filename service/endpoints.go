@@ -48,7 +48,7 @@ func MakeGetSubscriptionDetailsEndpoint(svc PodcastManageService) endpoint.Endpo
 		req := request.(getSubscriptionDetailsRequest)
 		podcast, e := svc.GetSubscriptionDetails(ctx, req.EmailID, req.URL)
 		if e != nil {
-			return getSubscriptionDetailsResponse{podcast, err.Error()}, nil
+			return getSubscriptionDetailsResponse{podcast, e.Error()}, nil
 		}
 		return getSubscriptionDetailsResponse{podcast, ""}, nil
 	}
@@ -60,7 +60,7 @@ func MakeGetUserSubscriptionsEndpoint(svc PodcastManageService) endpoint.Endpoin
 		req := request.(getUserSubscriptionsRequest)
 		subscriptions, e := svc.GetUserSubscriptions(ctx, req.EmailID)
 		if e != nil {
-			return getUserSubscriptionsResponse{subscriptions, err.Error()}, nil
+			return getUserSubscriptionsResponse{subscriptions, e.Error()}, nil
 		}
 		return getUserSubscriptionsResponse{subscriptions, ""}, nil
 	}

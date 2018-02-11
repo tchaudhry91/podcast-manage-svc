@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	jwt "github.com/dgrijalva/jwt-go"
+	kitjwt "github.com/go-kit/kit/auth/jwt"
 	"github.com/go-kit/kit/log"
 	"github.com/tchaudhry91/podcast-manage-svc/podcastmg"
 	"time"
@@ -30,6 +31,9 @@ var (
 
 	// ErrInvalidPassword indicates a failure to match password
 	ErrInvalidPassword = errors.New("Invalid password provided")
+
+	// ErrInvalidCLaim indicates a mismatch in request and the claim provided by the token
+	ErrInvalidClaim = errors.New("User/Token mismatch")
 )
 
 // TokenClaims is a custom claims struct to issue JWT tokens
@@ -103,6 +107,13 @@ func (svc *podcastManageService) CreateUser(ctx context.Context, emailID string,
 // GetUser returns a user object if found in the store
 func (svc *podcastManageService) GetUser(ctx context.Context, emailID string) (podcastmg.User, error) {
 	var user podcastmg.User
+
+	// Match Token Claim emailID to requested ID
+	claims := ctx.Value(kitjwt.JWTClaimsContextKey).(*TokenClaims)
+	if emailID != claims.EmailID {
+		return user, ErrInvalidClaim
+	}
+
 	err := svc.store.Connect()
 	if err != nil {
 		svc.logger.Log("err", err)
@@ -129,6 +140,13 @@ func (svc *podcastManageService) GetPodcastDetails(ctx context.Context, url stri
 
 // Subscribe adds a podcast subscription to a user and saves it in the database
 func (svc *podcastManageService) Subscribe(ctx context.Context, emailID, podcastURL string) error {
+
+	// Match Token Claim emailID to requested ID
+	claims := ctx.Value(kitjwt.JWTClaimsContextKey).(*TokenClaims)
+	if emailID != claims.EmailID {
+		return ErrInvalidClaim
+	}
+
 	err := svc.store.Connect()
 	if err != nil {
 		svc.logger.Log("err", err)
@@ -157,6 +175,13 @@ func (svc *podcastManageService) Subscribe(ctx context.Context, emailID, podcast
 // GetUserSubscriptions returns a list of podcasts that the user is subscribed to
 func (svc *podcastManageService) GetUserSubscriptions(ctx context.Context, emailID string) ([]podcastmg.Podcast, error) {
 	var subscriptions []podcastmg.Podcast
+
+	// Match Token Claim emailID to requested ID
+	claims := ctx.Value(kitjwt.JWTClaimsContextKey).(*TokenClaims)
+	if emailID != claims.EmailID {
+		return subscriptions, ErrInvalidClaim
+	}
+
 	err := svc.store.Connect()
 	if err != nil {
 		svc.logger.Log("err", err)
@@ -174,6 +199,13 @@ func (svc *podcastManageService) GetUserSubscriptions(ctx context.Context, email
 // GetSubscriptionDetails returns a populated podcast with items based on the user subscription
 func (svc *podcastManageService) GetSubscriptionDetails(ctx context.Context, emailID, podcastURL string) (podcastmg.Podcast, error) {
 	var podcast podcastmg.Podcast
+
+	// Match Token Claim emailID to requested ID
+	claims := ctx.Value(kitjwt.JWTClaimsContextKey).(*TokenClaims)
+	if emailID != claims.EmailID {
+		return podcast, ErrInvalidClaim
+	}
+
 	err := svc.store.Connect()
 	if err != nil {
 		svc.logger.Log("err", err)

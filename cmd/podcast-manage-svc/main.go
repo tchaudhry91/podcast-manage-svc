@@ -43,11 +43,11 @@ func main() {
 	}
 
 	// Middlewares
-	svc = service.MakeNewLoggingMiddleware(logger, svc)
+	//svc = service.MakeNewLoggingMiddleware(logger, svc)
 
 	var h http.Handler
 	{
-		h = service.MakeHTTPHandler(svc, *svcSigningSecret)
+		h = service.MakeHTTPHandler(svc, *svcSigningSecret, logger)
 	}
 
 	http.ListenAndServe(*httpAddr, h)

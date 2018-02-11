@@ -6,6 +6,7 @@ import (
 	"errors"
 	jwt "github.com/dgrijalva/jwt-go"
 	kitjwt "github.com/go-kit/kit/auth/jwt"
+	"github.com/go-kit/kit/log"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -17,12 +18,13 @@ var (
 )
 
 // MakeHTTPHandler returns a router for the podcast-manager-service
-func MakeHTTPHandler(svc PodcastManageService, signingString string) http.Handler {
+func MakeHTTPHandler(svc PodcastManageService, signingString string, logger log.Logger) http.Handler {
 	router := mux.NewRouter()
 	endpoints := MakeServerEndpoints(svc)
 	serverOptions := []kithttp.ServerOption{
 		kithttp.ServerBefore(kitjwt.HTTPToContext()),
 		kithttp.ServerErrorEncoder(encodeError),
+		kithttp.ServerErrorLogger(logger),
 	}
 
 	kf := func(token *jwt.Token) (interface{}, error) {
@@ -172,17 +174,19 @@ func codeFrom(err error) int {
 	case ErrUserFetch:
 		return http.StatusBadRequest
 	case ErrInvalidPassword:
-		return http.StatusBadRequest
+		return http.StatusUnauthorized
 	case kitjwt.ErrTokenContextMissing:
-		return http.StatusBadRequest
+		return http.StatusUnauthorized
 	case kitjwt.ErrTokenInvalid:
-		return http.StatusBadRequest
+		return http.StatusUnauthorized
 	case kitjwt.ErrTokenExpired:
-		return http.StatusBadRequest
+		return http.StatusUnauthorized
 	case kitjwt.ErrTokenMalformed:
 		return http.StatusBadRequest
 	case kitjwt.ErrTokenNotActive:
-		return http.StatusBadRequest
+		return http.StatusUnauthorized
+	case ErrInvalidClaim:
+		return http.StatusUnauthorized
 	default:
 		return http.StatusInternalServerError
 	}
