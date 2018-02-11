@@ -36,7 +36,7 @@ func MakeGetTokenEndpoint(svc PodcastManageService) endpoint.Endpoint {
 		req := request.(getTokenRequest)
 		tokenString, e := svc.GetToken(ctx, req.EmailID, req.Password)
 		if e != nil {
-			return getTokenResponse{tokenString, e.Error()}, nil
+			return getTokenResponse{tokenString, e.Error()}, e
 		}
 		return getTokenResponse{tokenString, ""}, nil
 	}
@@ -48,7 +48,7 @@ func MakeGetSubscriptionDetailsEndpoint(svc PodcastManageService) endpoint.Endpo
 		req := request.(getSubscriptionDetailsRequest)
 		podcast, e := svc.GetSubscriptionDetails(ctx, req.EmailID, req.URL)
 		if e != nil {
-			return getSubscriptionDetailsResponse{podcast, e.Error()}, nil
+			return getSubscriptionDetailsResponse{podcast, e.Error()}, e
 		}
 		return getSubscriptionDetailsResponse{podcast, ""}, nil
 	}
@@ -60,7 +60,7 @@ func MakeGetUserSubscriptionsEndpoint(svc PodcastManageService) endpoint.Endpoin
 		req := request.(getUserSubscriptionsRequest)
 		subscriptions, e := svc.GetUserSubscriptions(ctx, req.EmailID)
 		if e != nil {
-			return getUserSubscriptionsResponse{subscriptions, e.Error()}, nil
+			return getUserSubscriptionsResponse{subscriptions, e.Error()}, e
 		}
 		return getUserSubscriptionsResponse{subscriptions, ""}, nil
 	}
@@ -72,7 +72,7 @@ func MakeCreateUserEndpoint(svc PodcastManageService) endpoint.Endpoint {
 		req := request.(createUserRequest)
 		e := svc.CreateUser(ctx, req.EmailID, req.Password)
 		if e != nil {
-			return createUserResponse{false, e.Error()}, nil
+			return createUserResponse{false, e.Error()}, e
 		}
 		return createUserResponse{Status: true, Err: ""}, nil
 	}
@@ -84,7 +84,7 @@ func MakeGetUserEndpoint(svc PodcastManageService) endpoint.Endpoint {
 		req := request.(getUserRequest)
 		user, e := svc.GetUser(ctx, req.EmailID)
 		if e != nil {
-			return getUserResponse{User: user, Err: e.Error()}, nil
+			return getUserResponse{User: user, Err: e.Error()}, e
 		}
 		return getUserResponse{user, ""}, nil
 	}
@@ -94,9 +94,9 @@ func MakeGetUserEndpoint(svc PodcastManageService) endpoint.Endpoint {
 func MakeGetPodcastDetailsEndpoint(svc PodcastManageService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(getPodcastDetailsRequest)
-		podcast, err := svc.GetPodcastDetails(ctx, req.URL)
-		if err != nil {
-			return getPodcastDetailsResponse{Podcast: podcast, Err: err.Error()}, nil
+		podcast, e := svc.GetPodcastDetails(ctx, req.URL)
+		if e != nil {
+			return getPodcastDetailsResponse{Podcast: podcast, Err: err.Error()}, e
 		}
 		return getPodcastDetailsResponse{Podcast: podcast, Err: ""}, nil
 	}
@@ -106,9 +106,9 @@ func MakeGetPodcastDetailsEndpoint(svc PodcastManageService) endpoint.Endpoint {
 func MakeSubscribeEndpoint(svc PodcastManageService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(subscribeRequest)
-		err = svc.Subscribe(ctx, req.EmailID, req.URL)
-		if err != nil {
-			return subscribeResponse{Status: false, Err: err.Error()}, nil
+		e := svc.Subscribe(ctx, req.EmailID, req.URL)
+		if e != nil {
+			return subscribeResponse{Status: false, Err: e.Error()}, e
 		}
 		return subscribeResponse{Status: true, Err: ""}, nil
 	}
