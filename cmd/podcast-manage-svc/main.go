@@ -31,6 +31,7 @@ func main() {
 
 	dbConnString := BuildDBConnString(*dbDialect, *dbHostname, *dbUser, *dbPassword, *dbName, *dbSSLMode)
 
+	// Base Service
 	var svc service.PodcastManageService
 	{
 		var err error
@@ -40,6 +41,9 @@ func main() {
 			panic("Could not create service")
 		}
 	}
+
+	// Middlewares
+	svc = service.MakeNewLoggingMiddleware(logger, svc)
 
 	var h http.Handler
 	{
