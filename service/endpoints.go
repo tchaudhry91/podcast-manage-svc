@@ -12,6 +12,7 @@ type Endpoints struct {
 	GetUserEndpoint                endpoint.Endpoint
 	GetPodcastDetailsEndpoint      endpoint.Endpoint
 	SubscribeEndpoint              endpoint.Endpoint
+	UnsubscribeEndpoint            endpoint.Endpoint
 	GetUserSubscriptionsEndpoint   endpoint.Endpoint
 	GetSubscriptionDetailsEndpoint endpoint.Endpoint
 	GetTokenEndpoint               endpoint.Endpoint
@@ -24,6 +25,7 @@ func MakeServerEndpoints(svc PodcastManageService) Endpoints {
 		GetUserEndpoint:                MakeGetUserEndpoint(svc),
 		GetPodcastDetailsEndpoint:      MakeGetPodcastDetailsEndpoint(svc),
 		SubscribeEndpoint:              MakeSubscribeEndpoint(svc),
+		UnsubscribeEndpoint:            MakeUnsubscribeEndpoint(svc),
 		GetUserSubscriptionsEndpoint:   MakeGetUserSubscriptionsEndpoint(svc),
 		GetSubscriptionDetailsEndpoint: MakeGetSubscriptionDetailsEndpoint(svc),
 		GetTokenEndpoint:               MakeGetTokenEndpoint(svc),
@@ -114,6 +116,18 @@ func MakeSubscribeEndpoint(svc PodcastManageService) endpoint.Endpoint {
 	}
 }
 
+// MakeUnsubscribeEndpoint returns an UnsubscribeEndpoint via the passed service
+func MakeUnsubscribeEndpoint(svc PodcastManageService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(unsubscribeRequest)
+		e := svc.Unsubscribe(ctx, req.EmailID, req.URL)
+		if e != nil {
+			return unsubscribeResponse{Status: false, Err: e.Error()}, e
+		}
+		return unsubscribeResponse{Status: true, Err: ""}, nil
+	}
+}
+
 type getTokenRequest struct {
 	EmailID  string `json:"email_id"`
 	Password string `json:"password"`
@@ -149,6 +163,16 @@ type subscribeRequest struct {
 }
 
 type subscribeResponse struct {
+	Status bool   `json:"status"`
+	Err    string `json:"err,omitempty"`
+}
+
+type unsubscribeRequest struct {
+	EmailID string `json:"email_id"`
+	URL     string `json:"url"`
+}
+
+type unsubscribeResponse struct {
 	Status bool   `json:"status"`
 	Err    string `json:"err,omitempty"`
 }

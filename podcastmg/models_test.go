@@ -76,20 +76,25 @@ func TestUserSubscriptions(t *testing.T) {
 		name   string
 		user   User
 		append []Podcast
+		remove []Podcast
 		want   []Podcast
 	}
 
 	testCases := []userSubscriptionTestCase{
-		{"Empty Append", sampleUsers[1], nil, []Podcast{samplePodcasts[1], samplePodcasts[2]}},
-		{"Empty User", sampleUsers[3], nil, nil},
-		{"Single Append on Empty User", sampleUsers[2], []Podcast{samplePodcasts[1]}, []Podcast{samplePodcasts[1]}},
-		{"Single Append on Empty Subs", sampleUsers[0], []Podcast{samplePodcasts[1]}, []Podcast{samplePodcasts[1]}},
-		{"Multi Append on Empty Subs", sampleUsers[0], []Podcast{samplePodcasts[2], samplePodcasts[0]}, []Podcast{samplePodcasts[2], samplePodcasts[0]}},
+		{"Empty Append", sampleUsers[1], nil, nil, []Podcast{samplePodcasts[1], samplePodcasts[2]}},
+		{"Empty User", sampleUsers[3], nil, nil, nil},
+		{"Single Append on Empty User", sampleUsers[2], []Podcast{samplePodcasts[1]}, nil, []Podcast{samplePodcasts[1]}},
+		{"Single Append on Empty Subs", sampleUsers[0], []Podcast{samplePodcasts[1]}, nil, []Podcast{samplePodcasts[1]}},
+		{"Multi Append on Empty Subs", sampleUsers[0], []Podcast{samplePodcasts[2], samplePodcasts[0]}, nil, []Podcast{samplePodcasts[2], samplePodcasts[0]}},
+		{"Remove Sub", sampleUsers[1], nil, []Podcast{samplePodcasts[2]}, []Podcast{samplePodcasts[1]}},
 	}
 
 	for _, testCase := range testCases {
 		for _, append := range testCase.append {
 			testCase.user.AddSubscription(append)
+		}
+		for _, remove := range testCase.remove {
+			testCase.user.RemoveSubscription(remove)
 		}
 		if have := testCase.user.GetSubscriptions(); !compareSubscriptions(have, testCase.want) {
 			t.Errorf("TestCase:%v\tWant:%v\tHave:%v", testCase.name, testCase.want, have)

@@ -110,6 +110,22 @@ func (user *User) CheckSubscription(podcast Podcast) bool {
 	return false
 }
 
+// RemoveSubscription removes the subscription for the given podcast
+func (user *User) RemoveSubscription(podcast Podcast) error {
+	if exists := user.CheckSubscription(podcast); !exists {
+		return errors.New("Podcast not subscribed")
+	}
+	var index int
+	for i, val := range user.Podcasts {
+		if val.URL == podcast.URL {
+			index = i
+			break
+		}
+	}
+	user.Podcasts = append(user.Podcasts[:index], user.Podcasts[index+1:]...)
+	return nil
+}
+
 // GetSubscriptions returns a slice of podcasts that the user is subscribed to
 func (user *User) GetSubscriptions() []Podcast {
 	return user.Podcasts

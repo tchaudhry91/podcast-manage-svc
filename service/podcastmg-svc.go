@@ -48,6 +48,7 @@ type PodcastManageService interface {
 	GetUser(ctx context.Context, emailID string) (podcastmg.User, error)
 	GetPodcastDetails(ctx context.Context, url string) (podcastmg.Podcast, error)
 	Subscribe(ctx context.Context, emailID, podcastURL string) error
+	Unsubscribe(ctx context.Context, emailID, podcastURL string) error
 	GetUserSubscriptions(ctx context.Context, emailID string) ([]podcastmg.Podcast, error)
 	GetSubscriptionDetails(ctx context.Context, emailID, podcastURL string) (podcastmg.Podcast, error)
 	GetToken(ctx context.Context, emailID, password string) (string, error)
@@ -164,6 +165,40 @@ func (svc *podcastManageService) Subscribe(ctx context.Context, emailID, podcast
 		return ErrPodcastBuild
 	}
 	user.AddSubscription(podcast)
+	err = svc.store.UpdateUser(&user)
+	if err != nil {
+		svc.logger.Log("err", err)
+		return ErrUserUpdate
+	}
+	return nil
+}
+
+// Unsubscribe removes a podcast for a user's list of subscriptions
+func (svc *podcastManageService) Unsubscribe(ctx context.Context, emailID, podcastURL string) error {
+
+	// Match Token Claim emailID to requested ID
+	claims := ctx.Value(kitjwt.JWTClaimsContextKey).(*TokenClaims)
+	if emailID != claims.EmailID {
+		return ErrInvalidClaim
+	}
+
+	err := svc.store.Connect()
+	if err != nil {
+		svc.logger.Log("err", err)
+		return ErrDBConn
+	}
+	defer svc.store.Close()
+	user, err := svc.store.GetUserByEmail(emailID)
+	if err != nil {
+		svc.logger.Log("err", err)
+		return ErrUserFetch
+	}
+	podcast, err := podcastmg.BuildPodcastFromURL(podcastURL)
+	if err != nil {
+		svc.logger.Log("err", err)
+		return ErrPodcastBuild
+	}
+	user.RemoveSubscription(podcast)
 	err = svc.store.UpdateUser(&user)
 	if err != nil {
 		svc.logger.Log("err", err)

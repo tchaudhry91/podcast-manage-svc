@@ -67,6 +67,15 @@ func MakeHTTPHandler(svc PodcastManageService, signingString string, logger log.
 		serverOptions...,
 	))
 
+	unsubscribeEndpoint := endpoints.UnsubscribeEndpoint
+	unsubscribeEndpoint = authMiddleware(unsubscribeEndpoint)
+	router.Methods("POST").Path("/unsubscribe").Handler(kithttp.NewServer(
+		unsubscribeEndpoint,
+		decodeSubscribeRequest,
+		encodeGenericResponse,
+		serverOptions...,
+	))
+
 	subscriptionsEndpoint := endpoints.GetUserSubscriptionsEndpoint
 	subscriptionsEndpoint = authMiddleware(subscriptionsEndpoint)
 	router.Methods("POST").Path("/subscriptions").Handler(kithttp.NewServer(
