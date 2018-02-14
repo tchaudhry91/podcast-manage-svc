@@ -43,7 +43,7 @@ func main() {
 	}
 
 	// Middlewares
-	//svc = service.MakeNewLoggingMiddleware(logger, svc)
+	svc = service.MakeNewLoggingMiddleware(logger, svc)
 
 	var h http.Handler
 	{
