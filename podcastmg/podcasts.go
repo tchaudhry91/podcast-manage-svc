@@ -2,6 +2,7 @@ package podcastmg
 
 import (
 	"github.com/mmcdole/gofeed"
+	"sort"
 )
 
 func parseFeed(xmlURL string) (*gofeed.Feed, error) {
@@ -15,6 +16,9 @@ func parseFeed(xmlURL string) (*gofeed.Feed, error) {
 
 func buildItemsFromFeedItems(feedItems []*gofeed.Item) []PodcastItem {
 	var podcastItems []PodcastItem
+	sort.Slice(feedItems, func(i, j int) bool {
+		return feedItems[i].PublishedParsed.Before(*feedItems[j].PublishedParsed)
+	})
 	for _, item := range feedItems {
 		var mediaURL, mediaLength string
 		if len(item.Enclosures) < 1 {
