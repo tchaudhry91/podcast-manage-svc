@@ -65,6 +65,7 @@ type PodcastItem struct {
 	MediaURL    string     `json:"media_url"`
 	MediaLength string     `json:"media_length"`
 	ImageURL    string     `json:"image_url"`
+	Played      bool       `json:"played"`
 	Published   *time.Time `json:"published"`
 }
 
@@ -77,6 +78,7 @@ func NewPodcastItem(title, description, content, mediaURL, imageURL, mediaLength
 		MediaURL:    mediaURL,
 		MediaLength: mediaLength,
 		ImageURL:    imageURL,
+		Played:      false,
 		Published:   published,
 	}
 }
@@ -89,6 +91,16 @@ func (podcastItem *PodcastItem) GetParentID() uint {
 // GetItems returns the slice of PodcastItem which belongs to this podcast
 func (podcast *Podcast) GetItems() []PodcastItem {
 	return podcast.PodcastItems
+}
+
+// Update adds new items to the podcast from the feed
+func (podcast *Podcast) Update() error {
+	newItems, err := GetNewItems(podcast.URL, podcast.PodcastItems)
+	if err != nil {
+		return err
+	}
+	podcast.PodcastItems = append(podcast.PodcastItems, newItems...)
+	return nil
 }
 
 // AddSubscription adds a podcast to the user's slice of subscribed podcasts

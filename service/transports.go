@@ -77,7 +77,16 @@ func MakeHTTPHandler(svc PodcastManageService, signingString string, logger log.
 	unsubscribeEndpoint = authMiddleware(unsubscribeEndpoint)
 	router.Methods("POST").Path("/unsubscribe").Handler(kithttp.NewServer(
 		unsubscribeEndpoint,
-		decodeSubscribeRequest,
+		decodeUnsubscribeRequest,
+		encodeGenericResponse,
+		serverOptions...,
+	))
+
+	updatePodcastEndpoint := endpoints.UpdatePodcastEndpoint
+	updatePodcastEndpoint = authMiddleware(updatePodcastEndpoint)
+	router.Methods("POST").Path("/update").Handler(kithttp.NewServer(
+		updatePodcastEndpoint,
+		decodeUpdatePodcastRequest,
 		encodeGenericResponse,
 		serverOptions...,
 	))
@@ -152,6 +161,22 @@ func decodeSubscribeRequest(ctx context.Context, req *http.Request) (request int
 		return nil, ErrJSONUnmarshall
 	}
 	return subReq, nil
+}
+
+func decodeUnsubscribeRequest(ctx context.Context, req *http.Request) (request interface{}, err error) {
+	var unsubReq unsubscribeRequest
+	if err := json.NewDecoder(req.Body).Decode(&unsubReq); err != nil {
+		return nil, ErrJSONUnmarshall
+	}
+	return unsubReq, nil
+}
+
+func decodeUpdatePodcastRequest(ctx context.Context, req *http.Request) (request interface{}, err error) {
+	var podReq updatePodcastRequest
+	if err := json.NewDecoder(req.Body).Decode(&podReq); err != nil {
+		return nil, ErrJSONUnmarshall
+	}
+	return podReq, nil
 }
 
 func decodeGetPodcastDetailsRequest(ctx context.Context, req *http.Request) (request interface{}, err error) {

@@ -138,6 +138,27 @@ func TestPodcast(t *testing.T) {
 		}
 	}
 }
+
+func TestPodcastUpdation(t *testing.T) {
+	type PodcastTest struct {
+		feedURL string
+	}
+	testCases := []PodcastTest{
+		{feedURL: "http://feeds.ign.com/ignfeeds/podcasts/beyond?format=xml"},
+	}
+
+	for _, tc := range testCases {
+		pc, _ := BuildPodcastFromURL(tc.feedURL)
+		lenOld := len(pc.PodcastItems)
+		pc.PodcastItems = pc.PodcastItems[:5]
+		pc.Update()
+		lenNew := len(pc.PodcastItems)
+		if lenOld != lenNew {
+			t.Errorf("Old Length: %d, New Length: %d", lenOld, lenNew)
+		}
+	}
+}
+
 func compareSubscriptions(sl1 []Podcast, sl2 []Podcast) bool {
 	if sl1 == nil && sl2 == nil {
 		return true

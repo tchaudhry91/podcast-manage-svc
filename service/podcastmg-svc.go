@@ -23,6 +23,9 @@ var (
 	//ErrPodcastBuild indicates a failure to build the podcast for the given URL
 	ErrPodcastBuild = errors.New("Failed to build podcast from given URL")
 
+	//ErrPodcastUpdate indicates a failure to update the podcast for the given URL
+	ErrPodcastUpdate = errors.New("Failed to update the podcast in the database")
+
 	// ErrUserUpdate indicates a failure to save an updated user to the Datastore
 	ErrUserUpdate = errors.New("Failed to save user update to Database")
 
@@ -48,6 +51,7 @@ type PodcastManageService interface {
 	GetUser(ctx context.Context, emailID string) (podcastmg.User, error)
 	GetPodcastDetails(ctx context.Context, url string) (podcastmg.Podcast, error)
 	Subscribe(ctx context.Context, emailID, podcastURL string) error
+	UpdatePodcast(ctx context.Context, emailID, podcastURL string) error
 	Unsubscribe(ctx context.Context, emailID, podcastURL string) error
 	GetUserSubscriptions(ctx context.Context, emailID string) ([]podcastmg.Podcast, error)
 	GetSubscriptionDetails(ctx context.Context, emailID, podcastURL string) (podcastmg.Podcast, error)
@@ -203,6 +207,30 @@ func (svc *podcastManageService) Unsubscribe(ctx context.Context, emailID, podca
 	if err != nil {
 		svc.logger.Log("err", err)
 		return ErrUserUpdate
+	}
+	return nil
+}
+
+// UpdatePodcast updated a podcast subscription for the user via the feed
+func (svc *podcastManageService) UpdatePodcast(ctx context.Context, emailID, podcastURL string) error {
+
+	// Match Token Claim emailID to requested ID
+	claims := ctx.Value(kitjwt.JWTClaimsContextKey).(*TokenClaims)
+	if emailID != claims.EmailID {
+		return ErrInvalidClaim
+	}
+
+	err := svc.store.Connect()
+	if err != nil {
+		svc.logger.Log("err", err)
+		return ErrDBConn
+	}
+	defer svc.store.Close()
+
+	err = svc.store.UpdatePodcastBySubscription(emailID, podcastURL)
+	if err != nil {
+		svc.logger.Log("err", err)
+		return ErrPodcastUpdate
 	}
 	return nil
 }

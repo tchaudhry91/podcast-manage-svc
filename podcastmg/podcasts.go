@@ -41,3 +41,31 @@ func BuildPodcastFromURL(feedURL string) (Podcast, error) {
 	pc = NewPodcast(feed.Title, feed.Description, feed.Image.URL, feedURL, podcastItems)
 	return pc, nil
 }
+
+// GetNewItems returns a list of PodcastItems that are present in a new slice
+func GetNewItems(feedURL string, old []PodcastItem) (update []PodcastItem, err error) {
+	feed, err := parseFeed(feedURL)
+	if err != nil {
+		return
+	}
+	new := buildItemsFromFeedItems(feed.Items)
+
+	for i := len(new) - 1; i >= 0; i-- {
+		if checkItemIndex(new[i], old) < 0 {
+			update = append(update, new[i])
+		} else {
+			break
+		}
+	}
+	return
+}
+
+// checkItemExistence returns the index of an item if it is present in the slice, -1 if not
+func checkItemIndex(item PodcastItem, items []PodcastItem) int {
+	for i, itm := range items {
+		if item.Title == itm.Title && itm.MediaURL == itm.MediaURL {
+			return i
+		}
+	}
+	return -1
+}

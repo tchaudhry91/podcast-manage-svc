@@ -17,6 +17,7 @@ type Store interface {
 	UpdateUser(*User) error
 	DeleteUserByEmail(string) error
 	GetPodcastByID(uint) (Podcast, error)
+	UpdatePodcastBySubscription(userEmail string, podcastURL string) error
 	GetPodcastBySubscription(userEmail string, podcastURL string) (Podcast, error)
 	CreatePodcast(*Podcast) error
 }
@@ -126,6 +127,22 @@ func (dbStore *DBStore) GetPodcastBySubscription(userEmail string, podcastURL st
 		return podcast, err
 	}
 	return podcast, nil
+}
+
+// UpdatePodcastBySubcription updates a podcast by checking for new items in the feed
+func (dbStore *DBStore) UpdatePodcastBySubscription(userEmail string, podcastURL string) error {
+	podcast, err := dbStore.GetPodcastBySubscription(userEmail, podcastURL)
+	if err != nil {
+		return err
+	}
+	err = podcast.Update()
+	if err != nil {
+		return err
+	}
+	if err = dbStore.Database.Save(&podcast).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetPodcastByID returns a podcast from the database with the corresponding ID

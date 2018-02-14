@@ -13,6 +13,7 @@ type Endpoints struct {
 	GetPodcastDetailsEndpoint      endpoint.Endpoint
 	SubscribeEndpoint              endpoint.Endpoint
 	UnsubscribeEndpoint            endpoint.Endpoint
+	UpdatePodcastEndpoint          endpoint.Endpoint
 	GetUserSubscriptionsEndpoint   endpoint.Endpoint
 	GetSubscriptionDetailsEndpoint endpoint.Endpoint
 	GetTokenEndpoint               endpoint.Endpoint
@@ -26,6 +27,7 @@ func MakeServerEndpoints(svc PodcastManageService) Endpoints {
 		GetPodcastDetailsEndpoint:      MakeGetPodcastDetailsEndpoint(svc),
 		SubscribeEndpoint:              MakeSubscribeEndpoint(svc),
 		UnsubscribeEndpoint:            MakeUnsubscribeEndpoint(svc),
+		UpdatePodcastEndpoint:          MakeUpdatePodcastEndpoint(svc),
 		GetUserSubscriptionsEndpoint:   MakeGetUserSubscriptionsEndpoint(svc),
 		GetSubscriptionDetailsEndpoint: MakeGetSubscriptionDetailsEndpoint(svc),
 		GetTokenEndpoint:               MakeGetTokenEndpoint(svc),
@@ -128,6 +130,18 @@ func MakeUnsubscribeEndpoint(svc PodcastManageService) endpoint.Endpoint {
 	}
 }
 
+// MakeUpdatePodcastEndpoint returns an UpdatePodcastEndpoint via the passed service
+func MakeUpdatePodcastEndpoint(svc PodcastManageService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(updatePodcastRequest)
+		e := svc.UpdatePodcast(ctx, req.EmailID, req.URL)
+		if e != nil {
+			return updatePodcastResponse{Status: false, Err: e.Error()}, e
+		}
+		return updatePodcastResponse{Status: true, Err: ""}, nil
+	}
+}
+
 type getTokenRequest struct {
 	EmailID  string `json:"email_id"`
 	Password string `json:"password"`
@@ -173,6 +187,16 @@ type unsubscribeRequest struct {
 }
 
 type unsubscribeResponse struct {
+	Status bool   `json:"status"`
+	Err    string `json:"err,omitempty"`
+}
+
+type updatePodcastRequest struct {
+	EmailID string `json:"email_id"`
+	URL     string `json:"url"`
+}
+
+type updatePodcastResponse struct {
 	Status bool   `json:"status"`
 	Err    string `json:"err,omitempty"`
 }

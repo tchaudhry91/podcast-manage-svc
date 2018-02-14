@@ -85,6 +85,21 @@ func (mw loggingMiddleware) Unsubscribe(ctx context.Context, emailID, podcastURL
 	err = mw.next.Unsubscribe(ctx, emailID, podcastURL)
 	return
 }
+
+func (mw loggingMiddleware) UpdatePodcast(ctx context.Context, emailID, podcastURL string) (err error) {
+	defer func(begin time.Time) {
+		mw.logger.Log(
+			"method", "UpdatePodcast",
+			"user", emailID,
+			"url", podcastURL,
+			"err", err,
+			"took", time.Since(begin),
+		)
+	}(time.Now())
+	err = mw.next.UpdatePodcast(ctx, emailID, podcastURL)
+	return
+}
+
 func (mw loggingMiddleware) GetUserSubscriptions(ctx context.Context, emailID string) (subscriptions []podcastmg.Podcast, err error) {
 	defer func(begin time.Time) {
 		mw.logger.Log(
