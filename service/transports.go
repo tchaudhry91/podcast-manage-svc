@@ -50,6 +50,12 @@ func MakeHTTPHandler(svc PodcastManageService, signingString string, logger log.
 		encodeGenericResponse,
 		serverOptions...,
 	))
+	router.Methods("GET").Path("/user/{user}").Handler(kithttp.NewServer(
+		getUserEndpoint,
+		decodeGetUserRequestAlternate,
+		encodeGenericResponse,
+		serverOptions...,
+	))
 
 	router.Methods("POST").Path("/podcast").Handler(kithttp.NewServer(
 		endpoints.GetPodcastDetailsEndpoint,
@@ -160,6 +166,14 @@ func decodeGetUserRequest(ctx context.Context, req *http.Request) (request inter
 	var guReq getUserRequest
 	if err := json.NewDecoder(req.Body).Decode(&guReq); err != nil {
 		return nil, ErrJSONUnmarshall
+	}
+	return guReq, nil
+}
+
+func decodeGetUserRequestAlternate(ctx context.Context, req *http.Request) (request interface{}, err error) {
+	vars := mux.Vars(req)
+	guReq := getUserRequest{
+		EmailID: vars["user"],
 	}
 	return guReq, nil
 }
